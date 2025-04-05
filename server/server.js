@@ -24,9 +24,11 @@ process.on('unhandledRejection', (error) => {
 
 async function connectToDb() {
   try {
-    const client = new MongoClient(MONGODB_URI, {
+    const client = new MongoClient(MONGODB_URI + "&ssl=true&tlsAllowInvalidCertificates=true", {
       retryWrites: true,
       w: "majority",
+      tls: true,
+      tlsAllowInvalidCertificates: true
     });
     await client.connect();
     db = client.db('finance-coach');
