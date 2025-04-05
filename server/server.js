@@ -28,8 +28,8 @@ async function connectToDb() {
       retryWrites: true,
       w: "majority",
       tls: true,
-      directConnection: true,
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: 5000,
+      useNewUrlParser: true
     });
     await client.connect();
     db = client.db('finance-coach');
