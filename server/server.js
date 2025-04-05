@@ -25,8 +25,6 @@ process.on('unhandledRejection', (error) => {
 async function connectToDb() {
   try {
     const client = new MongoClient(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       retryWrites: true,
       w: "majority",
     });
