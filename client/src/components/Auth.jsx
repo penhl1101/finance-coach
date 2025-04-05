@@ -63,27 +63,43 @@ function Auth() {
           maxW="md" 
           w="full" 
           mx={4}
-          boxShadow="xl"
-          borderRadius="xl"
+          boxShadow="2xl"
+          borderRadius="2xl"
           overflow="hidden"
+          bg="white"
+          _hover={{
+            transform: 'translateY(-2px)',
+            transition: 'all 0.2s ease-in-out'
+          }}
         >
           <CardBody p={8}>
             <VStack spacing={6} align="stretch">
               <Box textAlign="center">
                 <Heading 
                   size="2xl" 
-                  color="blue.500" 
                   mb={6}
-                  fontWeight="bold"
-                  bgGradient="linear(to-r, blue.400, purple.500)"
+                  fontWeight="extrabold"
+                  bgGradient="linear(to-r, blue.500, purple.500, pink.500)"
                   bgClip="text"
+                  letterSpacing="tight"
+                  textShadow="0 2px 10px rgba(0,0,0,0.1)"
                 >
                   Finance Coach
                 </Heading>
-                <Heading size="lg" color="blue.600" mb={2}>
+                <Heading 
+                  size="md" 
+                  color="gray.700" 
+                  mb={3}
+                  fontWeight="medium"
+                >
                   {isLogin ? 'Welcome Back!' : 'Create Account'}
                 </Heading>
-                <Text color="gray.600">
+                <Text 
+                  color="gray.500"
+                  fontSize="lg"
+                  maxW="sm"
+                  mx="auto"
+                >
                   {isLogin 
                     ? 'Track your expenses and build wealth' 
                     : 'Join us and start your financial journey'}
