@@ -13,16 +13,17 @@ import {
   Container,
   Card,
   CardBody,
-  Image,
   InputGroup,
   InputLeftElement,
   Icon,
   Divider,
+  Image,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMail, FiLock } from 'react-icons/fi';
 import api from '../api';
+import logo from '../assets/logo.png';
 
 function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -72,12 +73,22 @@ function Auth() {
             <VStack spacing={6} align="stretch">
               <Box textAlign="center">
                 <Image 
-                  src="https://i.imgur.com/8NoLKac.png" // Replace with your logo
+                  src={logo}
                   alt="Finance Coach Logo"
                   h="60px"
                   mx="auto"
                   mb={4}
                 />
+                <Heading 
+                  size="2xl" 
+                  color="blue.500" 
+                  mb={6}
+                  fontWeight="bold"
+                  bgGradient="linear(to-r, blue.400, purple.500)"
+                  bgClip="text"
+                >
+                  Finance Coach
+                </Heading>
                 <Heading size="lg" color="blue.600" mb={2}>
                   {isLogin ? 'Welcome Back!' : 'Create Account'}
                 </Heading>
