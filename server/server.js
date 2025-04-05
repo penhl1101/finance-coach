@@ -6,11 +6,24 @@ const { MongoClient, ObjectId } = require('mongodb');
 dotenv.config();
 
 const app = express();
-app.use(cors({
-  origin: 'http://localhost:5173', // Your client's URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
+
+// Add this more permissive CORS setup
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://finance-coach.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({
+      body: "OK"
+    });
+  }
+  
+  next();
+});
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
@@ -780,6 +793,15 @@ app.post('/api/waitlist', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Add this near your other routes
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Finance Coach API is running',
+    status: 'healthy',
+    timestamp: new Date()
+  });
 });
 
 connectToDb()
