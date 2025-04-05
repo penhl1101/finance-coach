@@ -8,11 +8,28 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Add response interceptor
+// Add token to requests
+api.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle auth errors
 api.interceptors.response.use(
   response => response,
   error => {
-    console.error('API Error:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('userToken');
+      window.location.href = '/auth';
+    }
     return Promise.reject(error);
   }
 );

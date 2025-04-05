@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { MongoClient, ObjectId } = require('mongodb');
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 dotenv.config();
 
@@ -44,8 +47,8 @@ async function connectToDb() {
       serverSelectionTimeoutMS: 5000,
       useNewUrlParser: true
     });
-    await client.connect();
-    db = client.db('finance-coach');
+  await client.connect();
+  db = client.db('finance-coach');
     console.log('Connected to MongoDB successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
@@ -589,11 +592,70 @@ const checkUserLimit = async (req, res, next) => {
   next();
 };
 
-// Add registration endpoint
+// Add authentication middleware
+const auth = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) throw new Error('No token provided');
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.userId) });
+    
+    if (!user) throw new Error('User not found');
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Please authenticate' });
+  }
+};
+
+// Add login endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await db.collection('users').findOne({ email });
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET);
+    res.json({ token, email: user.email });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update registration endpoint
 app.post('/api/register', checkUserLimit, async (req, res) => {
   try {
     const { email, password } = req.body;
-    // Add user registration logic
+    
+    // Check if user already exists
+    const existingUser = await db.collection('users').findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create user
+    const result = await db.collection('users').insertOne({
+      email,
+      password: hashedPassword,
+      isActive: true,
+      createdAt: new Date()
+    });
+    
+    const token = jwt.sign({ userId: result.insertedId }, JWT_SECRET);
+    res.status(201).json({ token, email });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -614,9 +676,12 @@ app.post('/api/expenses', async (req, res) => {
   }
 });
 
-app.get('/api/expenses', async (req, res) => {
+app.get('/api/expenses', auth, async (req, res) => {
   try {
-    const expenses = await db.collection('expenses').find().sort({ date: -1 }).toArray();
+    const expenses = await db.collection('expenses')
+      .find({ userId: req.user._id })
+      .sort({ date: -1 })
+      .toArray();
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -804,14 +869,27 @@ app.get('/', (req, res) => {
   });
 });
 
+// Add this to prevent spin down (optional)
+const keepAlive = () => {
+  setInterval(async () => {
+    try {
+      await axios.get('https://finance-coach-backend.onrender.com/');
+      console.log('Keep alive ping sent');
+    } catch (error) {
+      console.error('Keep alive error:', error);
+    }
+  }, 840000); // 14 minutes
+};
+
 connectToDb()
   .then(() => {
     console.log('Database connection successful');
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      keepAlive(); // Start the keep-alive pings
     });
   })
   .catch((error) => {
     console.error('Database connection failed:', error);
     process.exit(1);
-  });
+});
