@@ -28,7 +28,8 @@ async function connectToDb() {
       retryWrites: true,
       w: "majority",
       tls: true,
-      tlsCAFile: `${__dirname}/ca-certificate.crt`  // We'll add this file
+      directConnection: true,
+      serverSelectionTimeoutMS: 5000
     });
     await client.connect();
     db = client.db('finance-coach');
