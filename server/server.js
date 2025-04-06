@@ -10,9 +10,19 @@ dotenv.config();
 
 const app = express();
 
-// Add this more permissive CORS setup
+// Update the CORS configuration
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://finance-coach.vercel.app');
+  const allowedOrigins = [
+    'https://finance-coach.vercel.app',
+    'https://finance-coach-git-main-penhl1101s-projects.vercel.app',
+    'http://localhost:5173'  // for local development
+  ];
+
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
